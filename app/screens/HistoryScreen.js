@@ -1,5 +1,5 @@
-// app/screens/DashboardScreen.js
-import { View, Text, StyleSheet, ScrollView,FlatList, Pressable } from 'react-native';
+import EmptyState from '../components/EmptyState/EmptyState';
+import { View, Text, StyleSheet, ScrollView,FlatList, Pressable,TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography, shadow } from '../constants/theme';
 import Header from '../components/Header/Header';
@@ -9,25 +9,55 @@ import { groupTransactionsByDay, formatLongDate, filterByRange } from '../utils/
 import { useState, useMemo } from 'react';
 
 
+
 const FILTERS = ['Today', 'This Week', 'This Month'];
 
-export default function HistoryScreen() {
+export default function HistoryScreen({navigation}) {
 
   const { transactions } = useTransactions();
   const [activeFilter, setActiveFilter] = useState('This Week');
+  const [searchQuery, setSearchQuery] = useState('');
 
-   const dailySummaries = useMemo(() => {
-    const grouped = groupTransactionsByDay(transactions);
+  
+  const filteredTransactions = useMemo(() => {
+  if (!searchQuery.trim()) return transactions;
+  const query = searchQuery.trim().toLowerCase();
+  return transactions.filter((t) =>
+    t.description?.toLowerCase().includes(query) ||
+    t.category?.toLowerCase().includes(query) ||
+    t.paymentMethod?.toLowerCase().includes(query)
+  );
+}, [transactions, searchQuery]);
+
+  const dailySummaries = useMemo(() => {
+    const grouped = groupTransactionsByDay(filteredTransactions);
     return filterByRange(grouped, activeFilter);
-  }, [transactions, activeFilter]);
+  }, [filteredTransactions, activeFilter]);
 
   return (
   
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-       <Header title='History'/>
+       <Header title='History' navigation={navigation}/>
 
-        {/* Filter pills */}
+      {/* Search bar */}
+      <View style={styles.searchWrap}>
+        <Ionicons name="search" size={18} color={colors.textSecondary} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search transactions..."
+          placeholderTextColor={colors.textSecondary}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        {searchQuery.length > 0 && (
+          <Pressable onPress={() => setSearchQuery('')}>
+            <Ionicons name="close-circle" size={18} color={colors.textSecondary} />
+          </Pressable>
+        )}
+      </View>
+
+      {/* Filter pills */}
       <View style={styles.pillRow}>
         {FILTERS.map((filter) => {
           const selected = filter === activeFilter;
@@ -50,10 +80,20 @@ export default function HistoryScreen() {
         data={dailySummaries}
         keyExtractor={(item) => item.date}
         contentContainerStyle={styles.listContent}
+
         ListEmptyComponent={
-          <Text style={styles.emptyText}>No transactions in this range yet.</Text>
-        }
-        renderItem={({ item }) => (
+  <EmptyState
+    icon={searchQuery ? 'search-outline' : 'calendar-outline'}
+    title="Nothing here yet"
+    subtitle={
+      searchQuery
+        ? `No results for "${searchQuery}".`
+        : `No transactions found for "${activeFilter}".`
+    }
+  />
+}        
+
+    renderItem={({ item }) => (
           <View style={[styles.card, shadow.card]}>
             <View style={styles.cardTopRow}>
               <Text style={styles.dateText}>{formatLongDate(item.date)}</Text>
@@ -116,4 +156,12 @@ const styles = StyleSheet.create({
   salesValue: { ...typography.bodyBold, color: colors.primary },
   expenseValue: { ...typography.bodyBold, color: colors.danger },
   emptyText: { ...typography.body, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl },
+  searchWrap: {
+  flexDirection: 'row', alignItems: 'center', backgroundColor: colors.inputBackground,
+  borderRadius: radius.md, paddingHorizontal: spacing.md, marginHorizontal: spacing.md,
+  marginTop: spacing.sm,
+},
+searchIcon: { marginRight: spacing.sm },
+searchInput: { flex: 1, paddingVertical: spacing.sm + 2, ...typography.body, color: colors.textPrimary,outlineStyle: 'none', },
+
 });

@@ -6,6 +6,7 @@ import Button from '../components/Button/Button';
 import Header from '../components/Header/Header';
 import TransactionItem from '../components/TransactionItem/TransactionItem';
 import { useTransactions } from '../context/TransactionsContext';
+import EmptyState from '../components/EmptyState/EmptyState';
 
 
 export default function DashboardScreen({ navigation }) {
@@ -16,7 +17,7 @@ export default function DashboardScreen({ navigation }) {
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         
-        <Header title="Dashboard" />
+        <Header title="Dashboard"  navigation={navigation} />
 
 
         {/* Greeting */}
@@ -74,12 +75,19 @@ export default function DashboardScreen({ navigation }) {
         </View>
 
         {/* Today's Activity */}
-        <View style={styles.activityHeader}>
-          <Text style={styles.sectionTitle}>Today's Activity</Text>
-          <Pressable>
-            <Text style={styles.viewAll}>View All</Text>
-          </Pressable>
-        </View>
+       <View style={[styles.card, shadow.card]}>
+        {todaysTransactions.length === 0 ? (
+          <EmptyState
+            icon="receipt-outline"
+            title="No activity yet today"
+            subtitle="Tap Add Sale or Add Expense to get started."
+          />
+        ) : (
+          todaysTransactions.map((tx) => (
+            <TransactionItem key={tx.id} {...tx} />
+          ))
+        )}
+      </View>
 
         <View style={[styles.card, shadow.card]}>
           {todaysTransactions.map((tx) => (

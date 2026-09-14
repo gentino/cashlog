@@ -3,13 +3,12 @@ import { View, Text, TextInput, Pressable, StyleSheet, KeyboardAvoidingView, Pla
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography } from '../constants/theme';
-import Button from '../components/Button/Button';// Add this import at the top
+import Button from '../components/Button/Button';
 import { useTransactions } from '../context/TransactionsContext';
 
 
 
 const PAYMENT_METHODS = ['Cash', 'Transfer', 'POS', 'Other'];
-
 export default function AddSaleScreen({ navigation }) {
 
   const { addTransaction } = useTransactions();
@@ -17,18 +16,43 @@ export default function AddSaleScreen({ navigation }) {
   const [description, setDescription] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [note, setNote] = useState('');
+  const [errors, setErrors] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
-  addTransaction({
-    type: 'sale',
-    amount: parseFloat(amount) || 0,
-    description,
-    paymentMethod,
-    note,
-  });
-  navigation.goBack();
+  const validate = () => {
+  const newErrors = {};
+  const numericAmount = parseFloat(amount);
+
+  if (!amount || isNaN(numericAmount) || numericAmount <= 0) {
+    newErrors.amount = 'Enter an amount greater than ₦0.';
+  }
+  if (!description.trim()) {
+    newErrors.description = 'Description is required.';
+  }
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
 };
 
+
+const handleSave = () => {
+  if (!validate()) return;
+
+  setIsSaving(true);
+
+  // Simulated delay - replace with a real await fetch/axios call once Django is connected
+  setTimeout(() => {
+    addTransaction({
+      type: 'sale',
+      amount: parseFloat(amount) || 0,
+      description,
+      paymentMethod,
+      note,
+    });
+    setIsSaving(false);
+    navigation.goBack();
+  }, 600);
+};
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView
@@ -59,6 +83,7 @@ export default function AddSaleScreen({ navigation }) {
                 keyboardType="decimal-pad"
               />
             </View>
+            {errors.amount ? <Text style={styles.errorText}>{errors.amount}</Text> : null}
           </View>
 
           {/* Description */}
@@ -70,6 +95,7 @@ export default function AddSaleScreen({ navigation }) {
             placeholder="e.g., Hair Treatment"
             placeholderTextColor={colors.textSecondary}
           />
+          {errors.description ? <Text style={styles.errorText}>{errors.description}</Text> : null}
 
           {/* Payment method */}
           <Text style={styles.fieldLabel}>Payment Method</Text>
@@ -105,8 +131,14 @@ export default function AddSaleScreen({ navigation }) {
 
         {/* Save button pinned to bottom */}
         <View style={styles.footer}>
-          <Button label="Save Sale" onPress={handleSave} />
+          <Button 
+          label={isSaving ? 'Saving...' : 'Save Sale'}  
+          onPress={handleSave}
+          disabled={isSaving}
+          />
         </View>
+
+        
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -127,11 +159,23 @@ const styles = StyleSheet.create({
   amountLabel: { ...typography.small, color: colors.textSecondary, marginBottom: spacing.xs },
   amountRow: { flexDirection: 'row', alignItems: 'center' },
   currencySymbol: { fontSize: 28, color: colors.primary, fontWeight: '700', marginRight: 6 },
-  amountInput: { fontSize: 34, fontWeight: '700', color: colors.primary, minWidth: 120, textAlign: 'center' },
+  amountInput: { 
+    fontSize: 34, 
+    fontWeight: '700', 
+    color: colors.primary, 
+    width:'100%',
+    outlineStyle: 'none',
+    maxWidth:'100%',
+    textAlign: 'center',
+    borderWidth: 0,
+   },
   fieldLabel: { ...typography.label, color: colors.textSecondary, marginBottom: spacing.xs, marginTop: spacing.sm },
   input: {
-    backgroundColor: colors.inputBackground, borderRadius: radius.md,
-    padding: spacing.md, ...typography.body, color: colors.textPrimary, marginBottom: spacing.md,
+    backgroundColor: colors.inputBackground, 
+    borderRadius: radius.md,
+    padding: spacing.md, ...typography.body,
+    color: colors.textPrimary, 
+    marginBottom: spacing.md,
   },
   noteInput: { minHeight: 90 },
   pillRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md, flexWrap: 'wrap' },
@@ -143,4 +187,5 @@ const styles = StyleSheet.create({
   pillText: { ...typography.bodyBold, color: colors.textPrimary },
   pillTextSelected: { color: colors.textInverse },
   footer: { padding: spacing.md },
+  errorText: { ...typography.small, color: colors.danger, marginTop: -8, marginBottom: spacing.sm },
 });

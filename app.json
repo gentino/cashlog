@@ -6,9 +6,22 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.miracleobike.e-cashlog"
     },
+    "package": "com.miracleobike.e-cashlog",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F6B45"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+
+    
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -22,3 +35,5 @@
     }
   }
 }
+
+

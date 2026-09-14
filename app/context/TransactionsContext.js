@@ -5,14 +5,14 @@ const TransactionsContext = createContext(null);
 // Sample seed data so screens aren't empty on first load
 const initialTransactions = [
   {
-    id: '1',
-    type: 'sale',
-    description: 'Hair Treatment',
-    amount: 15000,
-    paymentMethod: 'Transfer',
-    category: null,
-    note: '',
-    date: new Date().toISOString(),
+    // id: '1',
+    // type: 'sale',
+    // description: 'Hair Treatment',
+    // amount: 15000,
+    // paymentMethod: 'Transfer',
+    // category: null,
+    // note: '',
+    // date: new Date().toISOString(),
   },
 ];
 

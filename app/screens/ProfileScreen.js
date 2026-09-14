@@ -3,16 +3,12 @@ import { View, Text, Image, Pressable, Switch, ScrollView, StyleSheet, Alert } f
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography, shadow } from '../constants/theme';
+import { useBusiness } from '../context/BusinessContext';
+import  logo from '../assets/image/logo.png'
 
-// Static sample data for now - will come from Business Profile model / Django API later
-const businessProfile = {
-  name: 'Acme Corp',
-  category: 'Retail & Services',
-  phone: '+1 (555) 123-4567',
-  photoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
-};
 
 export default function ProfileScreen({ navigation }) {
+  const { business } = useBusiness();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const handleLogout = () => {
@@ -34,33 +30,34 @@ export default function ProfileScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Avatar + name */}
         <View style={styles.avatarWrap}>
-          <Image source={{ uri: businessProfile.photoUrl }} style={styles.avatar} />
+          <Image
+            source={typeof business.photoUrl === 'string' ? { uri: business.photoUrl } : business.photoUrl}
+            style={styles.avatar}
+          />
           <Pressable style={styles.editBadge}>
-            <Ionicons name="pencil" size={12} color={colors.textInverse} />
+            <Ionicons name="pencil" size={12} color={colors.textInverse}  onPress={() => navigation.navigate('EditProfile')}/>
           </Pressable>
         </View>
-        <Text style={styles.businessName}>{businessProfile.name}</Text>
-        <Text style={styles.businessCategory}>{businessProfile.category}</Text>
+        <Text style={styles.businessName}>{business.name}</Text>
+        {/* <Text style={styles.businessCategory}>{business.category}</Text> */}
 
         {/* Business Info card */}
         <Text style={styles.sectionLabel}>BUSINESS INFO</Text>
         <View style={[styles.card, shadow.card]}>
-          <InfoRow icon="storefront-outline" label="Business Name" value={businessProfile.name} />
+          <InfoRow icon="storefront-outline" label="Business Name" value={business.name} onPress={() => navigation.navigate('EditProfile')} />
           <Divider />
-          <InfoRow icon="apps-outline" label="Category" value={businessProfile.category} />
-          <Divider />
-          <InfoRow icon="call-outline" label="Phone Number" value={businessProfile.phone} isLast />
+          <InfoRow icon="call-outline" label="Phone Number" value={business.phone} onPress={() => navigation.navigate('EditProfile')} isLast />
         </View>
 
         {/* Settings card */}
         <Text style={styles.sectionLabel}>SETTINGS</Text>
         <View style={[styles.card, shadow.card]}>
-          <SettingRow icon="person-circle-outline" label="Edit Profile" />
+          <SettingRow icon="person-circle-outline" label="Edit Profile" onPress={() => navigation.navigate('EditProfile')} />
           <Divider />
-          <SettingRow icon="pricetag-outline" label="Manage Categories" />
+          <SettingRow icon="pricetag-outline" label="Manage Categories" onPress={() => navigation.navigate('ManageCategories')} />
           <Divider />
-          <SettingRow icon="swap-horizontal-outline" label="Currency Preferences" />
-          <Divider />
+          {/* <SettingRow icon="swap-horizontal-outline" label="Currency Preferences" onPress={() => navigation.navigate('CurrencyPreferences')} />
+          <Divider /> */}
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
               <Ionicons name="notifications-outline" size={20} color={colors.primary} style={styles.rowIcon} />
@@ -90,9 +87,9 @@ export default function ProfileScreen({ navigation }) {
   );
 }
 
-function InfoRow({ icon, label, value, isLast }) {
+function InfoRow({ icon, label, value, onPress }) {
   return (
-    <Pressable style={styles.infoRow}>
+    <Pressable style={styles.infoRow} onPress={onPress}>
       <View style={styles.iconCircle}>
         <Ionicons name={icon} size={16} color={colors.primary} />
       </View>
@@ -105,9 +102,9 @@ function InfoRow({ icon, label, value, isLast }) {
   );
 }
 
-function SettingRow({ icon, label }) {
+function SettingRow({ icon, label, onPress }) {
   return (
-    <Pressable style={styles.settingRow}>
+    <Pressable style={styles.settingRow} onPress={onPress}>
       <View style={styles.settingLeft}>
         <Ionicons name={icon} size={20} color={colors.primary} style={styles.rowIcon} />
         <Text style={styles.settingLabel}>{label}</Text>
@@ -132,7 +129,7 @@ const styles = StyleSheet.create({
     borderWidth: 2, borderColor: colors.background,
   },
   businessName: { ...typography.h2, color: colors.textPrimary, marginTop: spacing.sm },
-  businessCategory: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.md },
+  // businessCategory: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.md },
   sectionLabel: {
     ...typography.label, color: colors.textSecondary, alignSelf: 'flex-start',
     marginTop: spacing.md, marginBottom: spacing.xs,

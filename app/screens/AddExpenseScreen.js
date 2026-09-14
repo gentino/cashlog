@@ -15,8 +15,29 @@ export default function AddExpenseScreen({ navigation }) {const { addTransaction
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [note, setNote] = useState('');
+  const [errors, setErrors] = useState({});
 
- const handleSave = () => {
+ const validate = () => {
+  const newErrors = {};
+  const numericAmount = parseFloat(amount);
+
+  if (!amount || isNaN(numericAmount) || numericAmount <= 0) {
+    newErrors.amount = 'Enter an amount greater than ₦0.';
+  }
+  if (!description.trim()) {
+    newErrors.description = 'Description is required.';
+  }
+  if (!category) {
+    newErrors.category = 'Please select a category.';
+  }
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+
+const handleSave = () => {
+  if (!validate()) return;
+
   addTransaction({
     type: 'expense',
     amount: parseFloat(amount) || 0,
@@ -57,6 +78,7 @@ export default function AddExpenseScreen({ navigation }) {const { addTransaction
               keyboardType="decimal-pad"
             />
           </View>
+          {errors.amount ? <Text style={styles.errorText}>{errors.amount}</Text> : null}
 
           {/* Description */}
           <Text style={styles.fieldLabel}>DESCRIPTION</Text>
@@ -67,6 +89,7 @@ export default function AddExpenseScreen({ navigation }) {const { addTransaction
             placeholder="e.g. Fuel for generator"
             placeholderTextColor={colors.textSecondary}
           />
+          {errors.description ? <Text style={styles.errorText}>{errors.description}</Text> : null}
 
           {/* Category dropdown */}
           <Text style={styles.fieldLabel}>EXPENSE CATEGORY</Text>
@@ -76,6 +99,7 @@ export default function AddExpenseScreen({ navigation }) {const { addTransaction
             </Text>
             <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
           </Pressable>
+          {errors.category ? <Text style={styles.errorText}>{errors.category}</Text> : null}
 
           {/* Payment method */}
           <Text style={styles.fieldLabel}>PAYMENT METHOD</Text>
@@ -196,4 +220,5 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border,
   },
   modalItemText: { ...typography.body, color: colors.textPrimary },
+  errorText: { ...typography.small, color: colors.danger, marginTop: -4, marginBottom: spacing.sm },
 });
