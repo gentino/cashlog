@@ -4,11 +4,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography } from '../constants/theme';
 import Button from '../components/Button/Button';import { useTransactions } from '../context/TransactionsContext';
+import { useCategories } from '../context/CategoriesContext';
+import { useBusiness } from '../context/BusinessContext';
 
 const PAYMENT_METHODS = ['Cash', 'Transfer'];
-const CATEGORIES = ['Stock', 'Rent', 'Utilities', 'Transport', 'Salaries', 'Fuel', 'Other'];
 
-export default function AddExpenseScreen({ navigation }) {const { addTransaction } = useTransactions();
+
+export default function AddExpenseScreen({ navigation }) {
+  const { categories } = useCategories();
+  const { business } = useBusiness();
+  const { addTransaction } = useTransactions();
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState(null);
@@ -22,7 +27,7 @@ export default function AddExpenseScreen({ navigation }) {const { addTransaction
   const numericAmount = parseFloat(amount);
 
   if (!amount || isNaN(numericAmount) || numericAmount <= 0) {
-    newErrors.amount = 'Enter an amount greater than ₦0.';
+    newErrors.amount = `Enter an amount greater than ${business.currencySymbol}0.`;
   }
   if (!description.trim()) {
     newErrors.description = 'Description is required.';
@@ -68,7 +73,7 @@ const handleSave = () => {
           {/* Amount */}
           <Text style={styles.fieldLabel}>AMOUNT</Text>
           <View style={styles.amountRow}>
-            <Text style={styles.currencySymbol}>₦</Text>
+            <Text style={styles.currencySymbol}>{business.currencySymbol}</Text>
             <TextInput
               style={styles.amountInput}
               value={amount}
@@ -149,7 +154,7 @@ const handleSave = () => {
             <View style={styles.modalSheet}>
               <Text style={styles.modalTitle}>Select Category</Text>
               <FlatList
-                data={CATEGORIES}
+                data={categories}
                 keyExtractor={(item) => item}
                 renderItem={({ item }) => (
                   <Pressable
@@ -188,10 +193,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm,
   },
   currencySymbol: { fontSize: 22, color: colors.danger, fontWeight: '700', marginRight: 8 },
-  amountInput: { fontSize: 24, fontWeight: '700', color: colors.textPrimary, flex: 1 },
+  amountInput: { fontSize: 24, fontWeight: '700', color: colors.textPrimary, flex: 1,outlineStyle: 'none', },
   input: {
     backgroundColor: colors.inputBackground, borderRadius: radius.md,
-    padding: spacing.md, ...typography.body, color: colors.textPrimary,
+    padding: spacing.md, ...typography.body, color: colors.textPrimary,outlineStyle: 'none',
   },
   noteInput: { minHeight: 90 },
   dropdown: {

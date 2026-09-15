@@ -3,7 +3,7 @@ const defaultAvatar = require('../assets/image/profile.png');
 const BusinessContext = createContext(null);
 
 const initialBusiness = {
-  name: 'Acme Corp',
+  name: 'Mox Corp',
   phone: '+234 8131338819 ',
   photoUrl: defaultAvatar,
   currency: 'NGN',

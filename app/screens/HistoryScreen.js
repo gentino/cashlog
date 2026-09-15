@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactions } from '../context/TransactionsContext';
 import { groupTransactionsByDay, formatLongDate, filterByRange } from '../utils/dateHelpers';
 import { useState, useMemo } from 'react';
+import { useBusiness } from '../context/BusinessContext';
 
 
 
@@ -17,6 +18,7 @@ export default function HistoryScreen({navigation}) {
   const { transactions } = useTransactions();
   const [activeFilter, setActiveFilter] = useState('This Week');
   const [searchQuery, setSearchQuery] = useState('');
+  const { business } = useBusiness();
 
   
   const filteredTransactions = useMemo(() => {
@@ -97,7 +99,7 @@ export default function HistoryScreen({navigation}) {
           <View style={[styles.card, shadow.card]}>
             <View style={styles.cardTopRow}>
               <Text style={styles.dateText}>{formatLongDate(item.date)}</Text>
-              <Text style={styles.netText}>₦{item.net.toLocaleString()}</Text>
+              <Text style={styles.netText}>{business.currencySymbol}{item.net.toLocaleString()}</Text>
             </View>
 
             <View style={styles.divider} />
@@ -107,14 +109,14 @@ export default function HistoryScreen({navigation}) {
                 <Text style={styles.statLabel}>Sales</Text>
                 <View style={styles.statValueRow}>
                   <Ionicons name="arrow-up" size={14} color={colors.primary} />
-                  <Text style={styles.salesValue}>₦{item.sales.toLocaleString()}</Text>
+                  <Text style={styles.salesValue}>{business.currencySymbol}{item.sales.toLocaleString()}</Text>
                 </View>
               </View>
               <View>
                 <Text style={styles.statLabel}>Expenses</Text>
                 <View style={styles.statValueRow}>
                   <Ionicons name="arrow-down" size={14} color={colors.danger} />
-                  <Text style={styles.expenseValue}>₦{item.expenses.toLocaleString()}</Text>
+                  <Text style={styles.expenseValue}>{business.currencySymbol}{item.expenses.toLocaleString()}</Text>
                 </View>
               </View>
             </View>

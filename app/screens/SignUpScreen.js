@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md, paddingHorizontal: spacing.md, marginBottom: spacing.sm,
   },
   inputIcon: { marginRight: spacing.sm },
-  input: { flex: 1, paddingVertical: spacing.md, ...typography.body, color: colors.textPrimary },
+  input: { flex: 1, paddingVertical: spacing.md, ...typography.body, color: colors.textPrimary,outlineStyle: 'none', },
   errorText: { ...typography.small, color: colors.danger, marginBottom: spacing.sm },
   loginLinkWrap: { alignSelf: 'center', marginTop: spacing.md },
   loginLinkText: { ...typography.body, color: colors.textSecondary },

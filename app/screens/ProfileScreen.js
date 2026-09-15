@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography, shadow } from '../constants/theme';
 import { useBusiness } from '../context/BusinessContext';
-import  logo from '../assets/image/logo.png'
+
 
 
 export default function ProfileScreen({ navigation }) {

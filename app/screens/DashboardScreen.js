@@ -7,22 +7,42 @@ import Header from '../components/Header/Header';
 import TransactionItem from '../components/TransactionItem/TransactionItem';
 import { useTransactions } from '../context/TransactionsContext';
 import EmptyState from '../components/EmptyState/EmptyState';
+import { useBusiness } from '../context/BusinessContext';
 
 
 export default function DashboardScreen({ navigation }) {
+  const { business } = useBusiness();
   const { todaysTransactions, totalSales, totalExpenses, estimatedNet } = useTransactions();
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+});
 
+const getGreeting = () => {
+  const hour = new Date().getHours();
+
+  if (hour >= 5 && hour < 12) {
+    return ' Morning';
+  } else if (hour >= 12 && hour < 17) {
+    return ' Afternoon';
+  } else if (hour >= 17 && hour < 21) {
+    return ' Evening';
+  } else {
+    return ' Night';
+  }
+};
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        
         <Header title="Dashboard"  navigation={navigation} />
 
 
         {/* Greeting */}
-        <Text style={styles.greeting}>Good Morning, {'Miracle'} 👋</Text>
-        <Text style={styles.date}>{'date'}</Text>
+        <Text style={styles.greeting}>Good {getGreeting()}, {business.name} 👋</Text>
+        <Text style={styles.date}>{formattedDate}</Text>
 
         {/* Today's Business card */}
         <View style={[styles.card, shadow.card]}>
@@ -34,8 +54,7 @@ export default function DashboardScreen({ navigation }) {
           </View>
 
           <Text style={styles.netLabel}>Estimated Net</Text>
-          <Text style={styles.netValue}>₦{estimatedNet.toLocaleString()}</Text>
-
+          <Text style={styles.netValue}>{business.currencySymbol}{estimatedNet.toLocaleString()}</Text>
           <View style={styles.divider} />
 
           <View style={styles.statsRow}>
@@ -44,14 +63,14 @@ export default function DashboardScreen({ navigation }) {
                 <Ionicons name="arrow-down" size={14} color={colors.primary} />
                 <Text style={styles.statLabel}>Total Sales</Text>
               </View>
-              <Text style={styles.statValue}>₦{totalSales.toLocaleString()}</Text>
+              <Text style={styles.statValue}>{business.currencySymbol}{totalSales.toLocaleString()}</Text>
             </View>
             <View>
               <View style={styles.statLabelRow}>
                 <Ionicons name="arrow-up" size={14} color={colors.danger} />
                 <Text style={styles.statLabel}>Total Expenses</Text>
               </View>
-              <Text style={styles.statValue}>₦{totalExpenses.toLocaleString()}</Text>
+              <Text style={styles.statValue}>{business.currencySymbol}{totalExpenses.toLocaleString()}</Text>
             </View>
           </View>
         </View>
@@ -88,12 +107,6 @@ export default function DashboardScreen({ navigation }) {
           ))
         )}
       </View>
-
-        <View style={[styles.card, shadow.card]}>
-          {todaysTransactions.map((tx) => (
-  <TransactionItem key={tx.id} {...tx} />
-))}
-        </View>
       </ScrollView>
     </SafeAreaView>
   );

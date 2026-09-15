@@ -1,9 +1,11 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography } from '../../constants/theme';
+import { useBusiness } from '../../context/BusinessContext';
 
 // type: 'sale' | 'expense'
 export default function TransactionItem({ title, type, paymentMethod, amount }) {
+  const { business } = useBusiness();
   const isSale = type === 'sale';
   return (
     <View style={styles.row}>
@@ -28,7 +30,7 @@ export default function TransactionItem({ title, type, paymentMethod, amount }) 
       </View>
 
       <Text style={[styles.amount, { color: isSale ? colors.success : colors.error }]}>
-        {isSale ? '+' : '-'}₦{amount.toLocaleString()}
+        {isSale ? '+' : '-'}{business.currencySymbol}{amount.toLocaleString()}
       </Text>
     </View>
   );

@@ -3,22 +3,21 @@ import { View, Text, TextInput, Pressable, FlatList, StyleSheet } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography, shadow } from '../constants/theme';
+import { useCategories } from '../context/CategoriesContext';
 
-const initialCategories = ['Stock', 'Rent', 'Utilities', 'Transport', 'Salaries', 'Fuel', 'Other'];
 export default function ManageCategoriesScreen({ navigation }) {
-  const [categories, setCategories] = useState(initialCategories);
+  const { categories, addCategory, deleteCategory } = useCategories();
   const [newCategory, setNewCategory] = useState('');
+  const [error, setError] = useState('');
 
   const handleAdd = () => {
-    const trimmed = newCategory.trim();
-    if (!trimmed) return;
-    if (categories.includes(trimmed)) return;
-    setCategories((prev) => [...prev, trimmed]);
+    const success = addCategory(newCategory);
+    if (!success) {
+      setError(newCategory.trim() ? 'That category already exists.' : 'Enter a category name.');
+      return;
+    }
+    setError('');
     setNewCategory('');
-  };
-
-  const handleDelete = (category) => {
-    setCategories((prev) => prev.filter((c) => c !== category));
   };
 
   return (
@@ -44,6 +43,7 @@ export default function ManageCategoriesScreen({ navigation }) {
           <Ionicons name="add" size={22} color={colors.textInverse} />
         </Pressable>
       </View>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <FlatList
         data={categories}
@@ -52,7 +52,7 @@ export default function ManageCategoriesScreen({ navigation }) {
         renderItem={({ item }) => (
           <View style={[styles.categoryRow, shadow.card]}>
             <Text style={styles.categoryText}>{item}</Text>
-            <Pressable onPress={() => handleDelete(item)}>
+            <Pressable onPress={() => deleteCategory(item)}>
               <Ionicons name="trash-outline" size={20} color={colors.danger} />
             </Pressable>
           </View>
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md, paddingVertical: spacing.md,
   },
   headerTitle: { ...typography.h3, color: colors.textPrimary },
-  addRow: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.md, marginBottom: spacing.md },
+  addRow: { flexDirection: 'row', gap: spacing.sm, paddingHorizontal: spacing.md, marginBottom: spacing.xs },
   input: {
     flex: 1, backgroundColor: colors.inputBackground, borderRadius: radius.md,
     padding: spacing.md, ...typography.body, color: colors.textPrimary,
@@ -78,6 +78,7 @@ const styles = StyleSheet.create({
     width: 48, height: 48, borderRadius: radius.md, backgroundColor: colors.primary,
     justifyContent: 'center', alignItems: 'center',
   },
+  errorText: { ...typography.small, color: colors.danger, paddingHorizontal: spacing.md, marginBottom: spacing.sm },
   listContent: { paddingHorizontal: spacing.md, paddingBottom: spacing.xxl },
   categoryRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',

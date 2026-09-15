@@ -5,12 +5,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography } from '../constants/theme';
 import Button from '../components/Button/Button';
 import { useTransactions } from '../context/TransactionsContext';
+import { useBusiness } from '../context/BusinessContext';
+
 
 
 
 const PAYMENT_METHODS = ['Cash', 'Transfer', 'POS', 'Other'];
 export default function AddSaleScreen({ navigation }) {
-
+  const { business } = useBusiness();
   const { addTransaction } = useTransactions();
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
@@ -24,7 +26,7 @@ export default function AddSaleScreen({ navigation }) {
   const numericAmount = parseFloat(amount);
 
   if (!amount || isNaN(numericAmount) || numericAmount <= 0) {
-    newErrors.amount = 'Enter an amount greater than ₦0.';
+    newErrors.amount = `Enter an amount greater than ${business.currencySymbol}0.`;
   }
   if (!description.trim()) {
     newErrors.description = 'Description is required.';
@@ -73,7 +75,7 @@ const handleSave = () => {
           <View style={styles.amountBox}>
             <Text style={styles.amountLabel}>Sale Amount</Text>
             <View style={styles.amountRow}>
-              <Text style={styles.currencySymbol}>₦</Text>
+              <Text style={styles.currencySymbol}>{business.currencySymbol}</Text>
               <TextInput
                 style={styles.amountInput}
                 value={amount}

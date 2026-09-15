@@ -6,10 +6,12 @@ import { colors, spacing, radius, typography, shadow } from '../constants/theme'
 import { useTransactions } from '../context/TransactionsContext';
 import { filterTransactionsByPeriod, getLast7DaysSales } from '../utils/dateHelpers';
 import SalesBarChart from '../components/SalesBarChart/SalesBarChart';
+import { useBusiness } from '../context/BusinessContext';
 
 const PERIODS = ['This Month', 'Last Month', 'This Year'];
 
 export default function ReportsScreen() {
+  const { business } = useBusiness();
   const { transactions } = useTransactions();
   const [activePeriod, setActivePeriod] = useState('This Month');
 
@@ -89,7 +91,7 @@ export default function ReportsScreen() {
             <Text style={styles.cardLabel}>ESTIMATED NET</Text>
             <Ionicons name="wallet-outline" size={20} color={colors.textSecondary} />
           </View>
-          <Text style={styles.netValue}>₦{estimatedNet.toLocaleString()}</Text>
+          <Text style={styles.netValue}>{business.currencySymbol}{estimatedNet.toLocaleString()}</Text>
         </View>
 
         {/* Total Sales card */}
@@ -100,7 +102,7 @@ export default function ReportsScreen() {
             </View>
             <Text style={styles.smallCardLabel}>TOTAL SALES</Text>
           </View>
-          <Text style={styles.smallCardValue}>₦{totalSales.toLocaleString()}</Text>
+          <Text style={styles.smallCardValue}>{business.currencySymbol}{totalSales.toLocaleString()}</Text>
         </View>
 
         {/* Total Expenses card */}
@@ -112,7 +114,7 @@ export default function ReportsScreen() {
             <Text style={styles.smallCardLabel}>TOTAL EXPENSES</Text>
           </View>
           <Text style={[styles.smallCardValue, { color: colors.danger }]}>
-            ₦{totalExpenses.toLocaleString()}
+            {business.currencySymbol}{totalExpenses.toLocaleString()}
           </Text>
         </View>
 
@@ -124,7 +126,7 @@ export default function ReportsScreen() {
               <Text style={styles.chartSubtitle}>Last 7 days</Text>
             </View>
             <View style={styles.avgBadge}>
-              <Text style={styles.avgBadgeText}>DAILY AVG: ₦{Math.round(dailyAvg / 1000)}K</Text>
+              <Text style={styles.avgBadgeText}>DAILY AVG: {business.currencySymbol}{Math.round(dailyAvg / 1000)}K</Text>
             </View>
           </View>
           <SalesBarChart data={chartData} />
@@ -155,7 +157,7 @@ export default function ReportsScreen() {
             </Text>
           </View>
           <Text style={[styles.insightValue, { color: colors.danger }]}>
-            {highestExpense ? `₦${highestExpense.amount.toLocaleString()}` : '—'}
+            {highestExpense ? `{business.currencySymbol}${highestExpense.amount.toLocaleString()}` : '—'}
           </Text>
         </View>
 

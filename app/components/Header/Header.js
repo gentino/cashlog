@@ -1,11 +1,13 @@
 
 import { View, Text, StyleSheet,Pressable, Image } from 'react-native';
 import { colors, spacing, radius, typography } from '../../constants/theme';
-import { Ionicons } from '@expo/vector-icons';
 import  logo from '../../assets/image/logo.png'
+import { useBusiness } from '../../context/BusinessContext';
 
 // variant: 'primary' (filled green) | 'outline' (green border, transparent fill)
 export default function Header({title,navigation}) {
+
+  const {business} = useBusiness()
 
 
 return (
@@ -20,7 +22,11 @@ return (
           <Pressable style={styles.profileIcon}
            onPress={()=>navigation.navigate('Profile')}
           >
-            <Ionicons name="person" size={18} color={colors.textSecondary} />
+            {/* <Ionicons name="person" size={18} color={colors.textSecondary} /> */}
+            <Image
+                source={typeof business.photoUrl === 'string' ? { uri: business.photoUrl } : business.photoUrl}
+                style={styles.avatar}
+              />
           </Pressable>
         </View>
 )
@@ -40,6 +46,12 @@ const styles = StyleSheet.create({
     height:36,
     borderRadius: radius.pill
 
-  }
+  },
+  avatar: {
+    width:36,
+    height:36,
+    borderRadius: radius.pill
+
+  } 
 
 })
