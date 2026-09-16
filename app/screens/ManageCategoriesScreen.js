@@ -10,8 +10,8 @@ export default function ManageCategoriesScreen({ navigation }) {
   const [newCategory, setNewCategory] = useState('');
   const [error, setError] = useState('');
 
-  const handleAdd = () => {
-    const success = addCategory(newCategory);
+  const handleAdd = async () => {
+  const success = await addCategory(newCategory);
     if (!success) {
       setError(newCategory.trim() ? 'That category already exists.' : 'Enter a category name.');
       return;
@@ -46,19 +46,19 @@ export default function ManageCategoriesScreen({ navigation }) {
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
       <FlatList
-        data={categories}
-        keyExtractor={(item) => item}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <View style={[styles.categoryRow, shadow.card]}>
-            <Text style={styles.categoryText}>{item}</Text>
-            <Pressable onPress={() => deleteCategory(item)}>
-              <Ionicons name="trash-outline" size={20} color={colors.danger} />
-            </Pressable>
-          </View>
-        )}
-      />
-    </SafeAreaView>
+  data={categories}
+  keyExtractor={(item) => item.id.toString()}
+  contentContainerStyle={styles.listContent}
+  renderItem={({ item }) => (
+    <View style={[styles.categoryRow, shadow.card]}>
+      <Text style={styles.categoryText}>{item.name}</Text>
+      <Pressable onPress={() => deleteCategory(item.id)}>
+        <Ionicons name="trash-outline" size={20} color={colors.danger} />
+      </Pressable>
+    </View>
+  )}
+/>   
+</SafeAreaView>
   );
 }
 

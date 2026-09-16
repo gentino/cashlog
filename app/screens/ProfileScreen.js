@@ -1,30 +1,36 @@
 import { useState } from 'react';
-import { View, Text, Image, Pressable, Switch, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, Image, Pressable, Switch, ScrollView, StyleSheet, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography, shadow } from '../constants/theme';
 import { useBusiness } from '../context/BusinessContext';
+import { useAuth } from '../context/AuthContext';
 
 
 
 export default function ProfileScreen({ navigation }) {
   const { business } = useBusiness();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Log Out',
-        style: 'destructive',
-        onPress: () => {
-          // TODO: clear auth token / session, then navigate to SignIn
-          console.log('Logged out');
-        },
-      },
-    ]);
+  const performLogout = async () => {
+    await logout();
+    navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
   };
 
+  if (Platform.OS === 'web') {
+    const confirmed = window.confirm('Are you sure you want to log out?');
+    if (confirmed) {
+      performLogout();
+    }
+  } else {
+    Alert.alert('Log Out', 'Are you sure you want to log out?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Log Out', style: 'destructive', onPress: performLogout },
+    ]);
+  }
+};
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>

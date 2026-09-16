@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography, shadow } from '../constants/theme';
 import Button from '../components/Button/Button';
 import  logo from '../assets/image/logo.png'
+import { useAuth } from '../context/AuthContext';
 
 export default function SignUpScreen({ navigation }) {
   const [businessName, setBusinessName] = useState('');
@@ -13,21 +14,53 @@ export default function SignUpScreen({ navigation }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState('');
+  const { register } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleCreateAccount = () => {
-    if (!businessName || !emailOrPhone || !password) {
-      setError('Please fill in all fields.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-    setError('');
-    // TODO: replace with real Django registration call once backend is ready
-    console.log('New account:', { businessName, emailOrPhone, password });
+  // const handleCreateAccount = () => {
+  //   if (!businessName || !emailOrPhone || !password) {
+  //     setError('Please fill in all fields.');
+  //     return;
+  //   }
+  //   if (password !== confirmPassword) {
+  //     setError('Passwords do not match.');
+  //     return;
+  //   }
+  //   setError('');
+  //   // TODO: replace with real Django registration call once backend is ready
+  //   console.log('New account:', { businessName, emailOrPhone, password });
+  //   navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+  // };
+
+  const handleCreateAccount = async () => {
+  if (!businessName || !emailOrPhone || !password) {
+    setError('Please fill in all fields.');
+    return;
+  }
+  if (password !== confirmPassword) {
+    setError('Passwords do not match.');
+    return;
+  }
+
+  setError('');
+  setIsSubmitting(true);
+
+  try {
+    await register({ businessName, emailOrPhone, password });
     navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
-  };
+  } catch (err) {
+    const apiErrors = err.response?.data;
+    if (apiErrors?.email_or_phone) {
+      setError(apiErrors.email_or_phone[0]);
+    } else if (apiErrors?.password) {
+      setError(apiErrors.password[0]);
+    } else {
+      setError('Something went wrong. Please try again.');
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <SafeAreaView style={styles.container}>
@@ -108,7 +141,8 @@ export default function SignUpScreen({ navigation }) {
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-            <Button label="Create Account" onPress={handleCreateAccount} style={{ marginTop: spacing.sm }} />
+            {/* <Button label="Create Account" onPress={handleCreateAccount} style={{ marginTop: spacing.sm }} /> */}
+            <Button label="Create Account" onPress={handleCreateAccount} loading={isSubmitting} disabled={isSubmitting} style={{ marginTop: spacing.sm }} />
           </View>
 
           <Pressable style={styles.loginLinkWrap} onPress={() => navigation.navigate('SignIn')}>

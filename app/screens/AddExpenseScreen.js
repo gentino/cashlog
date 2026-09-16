@@ -9,18 +9,26 @@ import { useBusiness } from '../context/BusinessContext';
 
 const PAYMENT_METHODS = ['Cash', 'Transfer'];
 
-
-export default function AddExpenseScreen({ navigation }) {
-  const { categories } = useCategories();
+export default function AddExpenseScreen({ navigation, route }) {
   const { business } = useBusiness();
-  const { addTransaction } = useTransactions();
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState(null);
+  const { addTransaction, updateTransaction } = useTransactions();
+  const editTransaction = route.params?.editTransaction;
+  const isEditMode = !!editTransaction;
+
+  const { categories } = useCategories();
+
+  const [amount, setAmount] = useState(editTransaction ? String(editTransaction.amount) : '');
+  const [description, setDescription] = useState(editTransaction?.description || '');
+  const [category, setCategory] = useState(
+    editTransaction ? categories.find((c) => c.id === editTransaction.categoryId) || null : null
+  );
+
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('Cash');
-  const [note, setNote] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState(editTransaction?.paymentMethod || 'Cash');
+  const [note, setNote] = useState(editTransaction?.note || '');
+
   const [errors, setErrors] = useState({});
+
 
  const validate = () => {
   const newErrors = {};
@@ -39,22 +47,35 @@ export default function AddExpenseScreen({ navigation }) {
   setErrors(newErrors);
   return Object.keys(newErrors).length === 0;
 };
-
-const handleSave = () => {
+const handleSave = async () => {
   if (!validate()) return;
 
-  addTransaction({
-    type: 'expense',
-    amount: parseFloat(amount) || 0,
-    description,
-    category,
-    paymentMethod,
-    note,
-  });
-  navigation.goBack();
+  setIsSaving(true);
+
+  try {
+    const payload = {
+  amount: parseFloat(amount) || 0,
+  description,
+  category: category.id,
+  categoryName: category.name,
+  paymentMethod,
+  note,
 };
 
-  return (
+    if (isEditMode) {
+      await updateTransaction(editTransaction, payload);
+    } else {
+      await addTransaction({ type: 'expense', ...payload });
+    }
+
+    navigation.goBack();
+  } catch (error) {
+    setErrors({ amount: 'Failed to save. Please try again.' });
+  } finally {
+    setIsSaving(false);
+  }
+};
+return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -65,8 +86,7 @@ const handleSave = () => {
           <Pressable onPress={() => navigation.goBack()}>
             <Ionicons name="close" size={26} color={colors.primary} />
           </Pressable>
-          <Text style={styles.headerTitle}>Add New Expense</Text>
-          <View style={{ width: 26 }} />
+        <Text style={styles.headerTitle}>{isEditMode ? 'Edit Expense' : 'Add New Expense'}</Text>          <View style={{ width: 26 }} />
         </View>
 
         <View style={styles.content}>
@@ -99,11 +119,11 @@ const handleSave = () => {
           {/* Category dropdown */}
           <Text style={styles.fieldLabel}>EXPENSE CATEGORY</Text>
           <Pressable style={styles.dropdown} onPress={() => setCategoryModalVisible(true)}>
-            <Text style={category ? styles.dropdownTextSelected : styles.dropdownText}>
-              {category || 'Select category...'}
-            </Text>
-            <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
-          </Pressable>
+          <Text style={category ? styles.dropdownTextSelected : styles.dropdownText}>
+            {category ? category.name : 'Select category...'}
+          </Text>
+          <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
+        </Pressable>
           {errors.category ? <Text style={styles.errorText}>{errors.category}</Text> : null}
 
           {/* Payment method */}
@@ -140,7 +160,16 @@ const handleSave = () => {
 
         {/* Save button */}
         <View style={styles.footer}>
-          <Button label="Save Expense" onPress={handleSave} style={{ backgroundColor: colors.danger }} />
+          {/* <Button 
+          label="Save Expense" onPress={handleSave} 
+          style={{ backgroundColor: colors.danger }} /> */}
+          <Button
+            label={isEditMode ? 'Update Expense' : 'Save Expense'}
+            onPress={handleSave}
+            loading={isSaving}
+            disabled={isSaving}
+            style={{ backgroundColor: colors.danger }}
+          />
         </View>
 
         {/* Category picker modal */}
@@ -153,24 +182,25 @@ const handleSave = () => {
           <Pressable style={styles.modalOverlay} onPress={() => setCategoryModalVisible(false)}>
             <View style={styles.modalSheet}>
               <Text style={styles.modalTitle}>Select Category</Text>
+
               <FlatList
-                data={categories}
-                keyExtractor={(item) => item}
-                renderItem={({ item }) => (
-                  <Pressable
-                    style={styles.modalItem}
-                    onPress={() => {
-                      setCategory(item);
-                      setCategoryModalVisible(false);
-                    }}
-                  >
-                    <Text style={styles.modalItemText}>{item}</Text>
-                    {item === category && (
-                      <Ionicons name="checkmark" size={20} color={colors.primary} />
-                    )}
-                  </Pressable>
-                )}
-              />
+  data={categories}
+  keyExtractor={(item) => item.id.toString()}
+  renderItem={({ item }) => (
+    <Pressable
+      style={styles.modalItem}
+      onPress={() => {
+        setCategory(item);
+        setCategoryModalVisible(false);
+      }}
+    >
+      <Text style={styles.modalItemText}>{item.name}</Text>
+      {category?.id === item.id && (
+        <Ionicons name="checkmark" size={20} color={colors.primary} />
+      )}
+    </Pressable>
+  )}
+/>
             </View>
           </Pressable>
         </Modal>

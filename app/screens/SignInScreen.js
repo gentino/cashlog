@@ -5,18 +5,45 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography, shadow } from '../constants/theme';
 import Button from '../components/Button/Button';
 import  logo from '../assets/image/logo.png'
+import { useAuth } from '../context/AuthContext';
 
 
 export default function SignInScreen({ navigation }) {
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const { login } = useAuth();
 
-  const handleLogin = () => {
-    // TODO: replace with real Django auth call once backend is ready
-    console.log('Login attempt:', { emailOrPhone, password });
+  // const handleLogin = () => {
+  //   // TODO: replace with real Django auth call once backend is ready
+  //   console.log('Login attempt:', { emailOrPhone, password });
+  //   navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+  // };
+
+
+const [errorMessage, setErrorMessage] = useState('');
+
+const [isLoggingIn, setIsLoggingIn] =useState(false)
+
+const handleLogin = async () => {
+  if (!emailOrPhone || !password) {
+    setErrorMessage('Please enter your email/phone and password.');
+    return;
+  }
+
+  setErrorMessage('');
+  setIsLoggingIn(true);
+
+  try {
+    await login({ emailOrPhone, password });
     navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
-  };
+  } catch (error) {
+    const message = error.response?.data?.error || 'Login failed. Please try again.';
+    setErrorMessage(message);
+  } finally {
+    setIsLoggingIn(false);
+  }
+};
 
   return (
     <SafeAreaView style={styles.container}>
@@ -67,6 +94,7 @@ export default function SignInScreen({ navigation }) {
             <Pressable style={styles.forgotWrap}>
               <Text style={styles.forgotText}>Forgot password?</Text>
             </Pressable>
+            {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
             <Button label="Login" onPress={handleLogin} style={{ marginTop: spacing.sm }} />
             <Button
@@ -107,4 +135,6 @@ const styles = StyleSheet.create({
   secureRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, marginTop: spacing.lg },
   secureText: { ...typography.small, color: colors.textSecondary },
   illustrationImage: { width: '100%', height: '100%' },
+  errorText: { ...typography.small, color: colors.danger, marginBottom: spacing.sm, textAlign: 'center' },
+
 });

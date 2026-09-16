@@ -8,11 +8,36 @@ import TransactionItem from '../components/TransactionItem/TransactionItem';
 import { useTransactions } from '../context/TransactionsContext';
 import EmptyState from '../components/EmptyState/EmptyState';
 import { useBusiness } from '../context/BusinessContext';
+import { useState } from 'react';
+import TransactionActionsModal from '../components/TransactionActionsModal/TransactionActionsModal';
+import { confirmDialog } from '../utils/confirmDialog';
+import ErrorState from '../components/ErrorState/ErrorState';
 
 
 export default function DashboardScreen({ navigation }) {
-  const { business } = useBusiness();
-  const { todaysTransactions, totalSales, totalExpenses, estimatedNet } = useTransactions();
+
+  
+  const { business } = useBusiness();  
+  const { todaysTransactions, totalSales, totalExpenses, estimatedNet, deleteTransaction, error, refetchTransactions,transactions } = useTransactions();
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+
+  const handleEdit = () => {
+  const screen = selectedTransaction.type === 'sale' ? 'AddSale' : 'AddExpense';
+  setSelectedTransaction(null);
+  navigation.navigate(screen, { editTransaction: selectedTransaction });
+};
+
+const handleDelete = () => {
+  const transaction = selectedTransaction;
+  setSelectedTransaction(null);
+  confirmDialog('Delete transaction?', `Remove "${transaction.description}"? This can't be undone.`, () => {
+    deleteTransaction(transaction);
+  });
+};
+
+
+
+
   const today = new Date();
   const formattedDate = today.toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -39,7 +64,10 @@ const getGreeting = () => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Header title="Dashboard"  navigation={navigation} />
 
-
+  {error && transactions.length === 0 ? (
+        <ErrorState message={error} onRetry={refetchTransactions} />
+      ) : (
+      <>
         {/* Greeting */}
         <Text style={styles.greeting}>Good {getGreeting()}, {business.name} 👋</Text>
         <Text style={styles.date}>{formattedDate}</Text>
@@ -103,10 +131,21 @@ const getGreeting = () => {
           />
         ) : (
           todaysTransactions.map((tx) => (
-            <TransactionItem key={tx.id} {...tx} />
-          ))
+        <TransactionItem key={tx.id} {...tx} onPress={() => setSelectedTransaction(tx)} />
+        ))
         )}
       </View>
+
+      <TransactionActionsModal
+      visible={!!selectedTransaction}
+      transaction={selectedTransaction}
+      onClose={() => setSelectedTransaction(null)}
+      onEdit={handleEdit}
+      onDelete={handleDelete}
+    />
+
+    </>
+      )}
       </ScrollView>
     </SafeAreaView>
   );

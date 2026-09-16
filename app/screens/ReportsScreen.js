@@ -7,12 +7,14 @@ import { useTransactions } from '../context/TransactionsContext';
 import { filterTransactionsByPeriod, getLast7DaysSales } from '../utils/dateHelpers';
 import SalesBarChart from '../components/SalesBarChart/SalesBarChart';
 import { useBusiness } from '../context/BusinessContext';
+import ErrorState from '../components/ErrorState/ErrorState';
+
 
 const PERIODS = ['This Month', 'Last Month', 'This Year'];
 
 export default function ReportsScreen() {
   const { business } = useBusiness();
-  const { transactions } = useTransactions();
+  const { transactions, error, refetchTransactions } = useTransactions();
   const [activePeriod, setActivePeriod] = useState('This Month');
 
   const periodTransactions = useMemo(
@@ -84,6 +86,12 @@ export default function ReportsScreen() {
             );
           })}
         </View>
+
+
+  {error && transactions.length === 0 ? (
+    <ErrorState message={error} onRetry={refetchTransactions} />
+  ) : (
+    <>
 
         {/* Estimated Net card */}
         <View style={[styles.card, shadow.card]}>
@@ -171,6 +179,9 @@ export default function ReportsScreen() {
           </View>
           <Text style={styles.insightValue}>{topPaymentMethod}</Text>
         </View>
+
+        </>
+      )}
       </ScrollView>
     </SafeAreaView>
   );

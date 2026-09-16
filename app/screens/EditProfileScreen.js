@@ -11,44 +11,51 @@ export default function EditProfileScreen({ navigation }) {
   const { business, updateBusiness, setCurrency, currencyOptions } = useBusiness();
   const [name, setName] = useState(business.name);
   const [photoUrl, setPhotoUrl] = useState(business.photoUrl);
+  const [pickedPhotoFile, setPickedPhotoFile] = useState(null); // raw picker result, only set if user picks a NEW photo
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
   const handlePickImage = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Permission needed', 'Please allow photo library access to change your profile picture.');
-      return;
+  const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (!permission.granted) {
+    Alert.alert('Permission needed', 'Please allow photo library access to change your profile picture.');
+    return;
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 0.7,
+  });
+
+  if (!result.canceled && result.assets?.length > 0) {
+    setPhotoUrl(result.assets[0].uri); // for instant preview
+    setPickedPhotoFile(result.assets[0]); // for actual upload
+  }
+};
+
+  const handleSave = async () => {
+  if (!name.trim()) {
+    setError('Business name cannot be empty.');
+    return;
+  }
+  setError('');
+  setIsSaving(true);
+
+  try {
+    const updates = { name: name.trim() };
+    if (pickedPhotoFile) {
+      updates.photoFile = pickedPhotoFile;
     }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-
-    if (!result.canceled && result.assets?.length > 0) {
-      setPhotoUrl(result.assets[0].uri);
-    }
-  };
-
-  const handleSave = () => {
-    if (!name.trim()) {
-      setError('Business name cannot be empty.');
-      return;
-    }
-    setError('');
-    setIsSaving(true);
-
-    // Simulated delay - replace with a real API call (including image upload) once Django is connected
-    setTimeout(() => {
-      updateBusiness({ name: name.trim(),  photoUrl });
-      setIsSaving(false);
-      navigation.goBack();
-    }, 500);
-  };
-
+    await updateBusiness(updates);
+    navigation.goBack();
+  } catch (err) {
+    setError('Failed to save changes. Please try again.');
+  } finally {
+    setIsSaving(false);
+  }
+};
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>

@@ -8,14 +8,15 @@ import { useTransactions } from '../context/TransactionsContext';
 import { groupTransactionsByDay, formatLongDate, filterByRange } from '../utils/dateHelpers';
 import { useState, useMemo } from 'react';
 import { useBusiness } from '../context/BusinessContext';
+import ErrorState from '../components/ErrorState/ErrorState';
 
 
 
 const FILTERS = ['Today', 'This Week', 'This Month'];
 
 export default function HistoryScreen({navigation}) {
-
-  const { transactions } = useTransactions();
+  const { transactions, error, refetchTransactions } = useTransactions();
+  // const { transactions } = useTransactions();
   const [activeFilter, setActiveFilter] = useState('This Week');
   const [searchQuery, setSearchQuery] = useState('');
   const { business } = useBusiness();
@@ -78,6 +79,9 @@ export default function HistoryScreen({navigation}) {
       </View>
 
       {/* Daily summary list */}
+{error && transactions.length === 0 ? (
+    <ErrorState message={error} onRetry={refetchTransactions} />
+  ) : (
       <FlatList
         data={dailySummaries}
         keyExtractor={(item) => item.date}
@@ -96,7 +100,7 @@ export default function HistoryScreen({navigation}) {
 }        
 
     renderItem={({ item }) => (
-          <View style={[styles.card, shadow.card]}>
+          <Pressable style={[styles.card, shadow.card]} onPress={() => navigation.navigate('DayDetail', { date: item.date })}>
             <View style={styles.cardTopRow}>
               <Text style={styles.dateText}>{formatLongDate(item.date)}</Text>
               <Text style={styles.netText}>{business.currencySymbol}{item.net.toLocaleString()}</Text>
@@ -120,12 +124,12 @@ export default function HistoryScreen({navigation}) {
                 </View>
               </View>
             </View>
-          </View>
+          </Pressable>
         )}
       />
 
 
-
+      )}
 
 
       </ScrollView>

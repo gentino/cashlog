@@ -6,18 +6,22 @@ import { colors, spacing, radius, typography } from '../constants/theme';
 import Button from '../components/Button/Button';
 import { useTransactions } from '../context/TransactionsContext';
 import { useBusiness } from '../context/BusinessContext';
-
-
+import { useEffect } from 'react';
 
 
 const PAYMENT_METHODS = ['Cash', 'Transfer', 'POS', 'Other'];
-export default function AddSaleScreen({ navigation }) {
+
+export default function AddSaleScreen({ navigation, route }) {
   const { business } = useBusiness();
-  const { addTransaction } = useTransactions();
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('Cash');
-  const [note, setNote] = useState('');
+  const { addTransaction, updateTransaction } = useTransactions();
+  const editTransaction = route.params?.editTransaction;
+  const isEditMode = !!editTransaction;
+
+  const [amount, setAmount] = useState(editTransaction ? String(editTransaction.amount) : '');
+  const [description, setDescription] = useState(editTransaction?.description || '');
+  const [paymentMethod, setPaymentMethod] = useState(editTransaction?.paymentMethod || 'Cash');
+  const [note, setNote] = useState(editTransaction?.note || '');
+
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
 
@@ -36,26 +40,34 @@ export default function AddSaleScreen({ navigation }) {
   return Object.keys(newErrors).length === 0;
 };
 
-
-const handleSave = () => {
+const handleSave = async () => {
   if (!validate()) return;
 
   setIsSaving(true);
 
-  // Simulated delay - replace with a real await fetch/axios call once Django is connected
-  setTimeout(() => {
-    addTransaction({
-      type: 'sale',
+  try {
+    const payload = {
       amount: parseFloat(amount) || 0,
       description,
       paymentMethod,
       note,
-    });
-    setIsSaving(false);
+    };
+
+    if (isEditMode) {
+      await updateTransaction(editTransaction, payload);
+    } else {
+      await addTransaction({ type: 'sale', ...payload });
+    }
+
     navigation.goBack();
-  }, 600);
+  } catch (error) {
+    setErrors({ amount: 'Failed to save. Please try again.' });
+  } finally {
+    setIsSaving(false);
+  }
 };
-  return (
+
+return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -66,7 +78,7 @@ const handleSave = () => {
           <Pressable onPress={() => navigation.goBack()}>
             <Ionicons name="close" size={26} color={colors.textPrimary} />
           </Pressable>
-          <Text style={styles.headerTitle}>Add New Sale</Text>
+          <Text style={styles.headerTitle}>{isEditMode ? 'Edit Sale' : 'Add New Sale'}</Text>
           <View style={{ width: 26 }} />
         </View>
 
@@ -134,8 +146,10 @@ const handleSave = () => {
         {/* Save button pinned to bottom */}
         <View style={styles.footer}>
           <Button 
-          label={isSaving ? 'Saving...' : 'Save Sale'}  
+          // label={isSaving ? 'Saving...' : 'Save Sale'}  
+          label={isEditMode ? 'Update Sale' : 'Save Sale'}
           onPress={handleSave}
+          loading={isSaving}
           disabled={isSaving}
           />
         </View>
